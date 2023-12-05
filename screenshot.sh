@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Need to install imagemagick
+# If you want to use monitor script, set default screenshot
+# directory to $HOME/screenshots
 #
 # screenshot.sh
 #
@@ -12,7 +14,12 @@
 # Variables
 FILE_LOC=$1
 NAME=$(basename "$FILE_LOC")
-SCSHT_DIR=/Users/sam/screenshots
+SCSHT_DIR=$HOME/screenshots
+MODIFY_DIR="$SCSHT_DIR/modded"
+FINAL_LOC="$MODIFY_DIR/$NAME"
+
+mkdir -p $SCH_DIR $MODIFY_DIR
+
 BG_IMG=$SCSHT_DIR/imgback.png
 BG_PADDING=80
 
@@ -33,6 +40,6 @@ convert $BG_IMG -resize ${NEW_WIDTH}x${NEW_HEIGHT}^ \
 
 # Put the image on the background
 convert /tmp/background.png /tmp/tmpscreenshot.png \
-	-gravity center -composite ~/screenshots/$NAME
+	-gravity center -composite $FINAL_LOC
 
-osascript -e "set the clipboard to (read (POSIX file \"$SCSHT_DIR/$NAME\") as JPEG picture)"
+osascript -e "set the clipboard to (read (POSIX file \"$FINAL_LOC\") as JPEG picture)"
