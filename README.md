@@ -12,6 +12,13 @@ Follow me on twitter to get updates about it: [@samcraigjohnson](https://twitter
 
 I have a `~/bin` folder that I have added to my `PATH` for all my scripts. If you want to use these, just clone the directory and either add the directory path to your `PATH` or symlink the scripts you want to your `~/bin` folder.
 
+## Niceshot
+
+Looks like this when it's done. Varies based on your background image.
+
+![image](https://github.com/samcraigjohnson/one-liners/assets/662544/1f4d20a2-7bf7-408e-8dca-1f6ed0f87cd2)
+
+
 ## Comments
 
 This uses a lot of system commands mixed with ruby for ease-of-use.
