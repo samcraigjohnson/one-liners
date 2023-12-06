@@ -1,48 +1,49 @@
 #!/bin/bash
 
-# Need to install imagemagick
-# If you want to use monitor script, set default screenshot
-# directory to $HOME/screenshots
-#
 # screenshot.sh
 #
+# Choose a screenshot location,
 # Adds a fancy background, of your choice.
-# Copys the new image to your clipboard.
+# Copys the new image to your clipboard (and saves them).
 #
 # Update file locations as needed
+#
+# Requirements: imagemagick
+# Only works on MacOS
 
-# Variables
-NAME="$(date -u +%Y-%m-%dT%H:%M:%SZ)_screenshot.png"
-SCSHT_DIR="$HOME/screenshots"
-MODIFY_DIR="$SCSHT_DIR/modded"
-FINAL_LOC="$MODIFY_DIR/$NAME"
-FILE_LOC="$SCSHT_DIR/$NAME"
-BG_IMG=$SCSHT_DIR/imgback.png
-BG_PADDING=80
+# Variables - change as needed
+NAME="$(date -u +%Y-%m-%dT%H:%M:%SZ)_screenshot.png" # screenshot name
+SCREENSHOT_DIR="$HOME/screenshots"                   # folder to store all of the screenshots
+MODIFY_DIR="$SCREENSHOT_DIR/modded"                  # folder to store all modified screenshots
+FINAL_LOC="$MODIFY_DIR/$NAME"                        # full path of modified screenshot
+FILE_LOC="$SCREENSHOT_DIR/$NAME"                     # full path of unmodified screenshot
+BG_IMG=$SCREENSHOT_DIR/imgback.png                   # image to use as background image
+BG_PADDING=80                                        # edge padding on image with background
 
-mkdir -p $SCH_DIR $MODIFY_DIR
+# Setup the directories
+mkdir -p "$SCREENSHOT_DIR" "$MODIFY_DIR"
 
 # Capture screenshot
 screencapture -i $FILE_LOC
 sleep 1 # Because of race conditions
 
-# Calculations
+# Calculate Dimensions
 read WIDTH HEIGHT < <(identify -format "%w %h" $FILE_LOC)
 NEW_WIDTH=$((WIDTH + BG_PADDING))
 NEW_HEIGHT=$((HEIGHT + BG_PADDING))
 
-# Put dropshadow on img
-magick $FILE_LOC -alpha set \
+# Make hard dropshadow on image
+magick "$FILE_LOC" -alpha set \
 	\( +clone -background black -shadow 80x0+10+10 \) +swap \
 	-background none -mosaic /tmp/tmpscreenshot.png
 
 # Resize our bg img so screenshot fits on it with padding
-convert $BG_IMG -resize ${NEW_WIDTH}x${NEW_HEIGHT}^ \
+convert "$BG_IMG" -resize ${NEW_WIDTH}x${NEW_HEIGHT}^ \
 	-gravity center -extent ${NEW_WIDTH}x${NEW_HEIGHT} \
 	/tmp/background.png
 
 # Put the image on the background
 convert /tmp/background.png /tmp/tmpscreenshot.png \
-	-gravity center -composite $FINAL_LOC
+	-gravity center -composite "$FINAL_LOC"
 
 osascript -e "set the clipboard to (read (POSIX file \"$FINAL_LOC\") as JPEG picture)"
