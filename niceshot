@@ -12,16 +12,19 @@
 # Update file locations as needed
 
 # Variables
-FILE_LOC=$1
-NAME=$(basename "$FILE_LOC")
-SCSHT_DIR=$HOME/screenshots
+NAME="$(date -u +%Y-%m-%dT%H:%M:%SZ)_screenshot.png"
+SCSHT_DIR="$HOME/screenshots"
 MODIFY_DIR="$SCSHT_DIR/modded"
 FINAL_LOC="$MODIFY_DIR/$NAME"
+FILE_LOC="$SCSHT_DIR/$NAME"
+BG_IMG=$SCSHT_DIR/imgback.png
+BG_PADDING=80
 
 mkdir -p $SCH_DIR $MODIFY_DIR
 
-BG_IMG=$SCSHT_DIR/imgback.png
-BG_PADDING=80
+# Capture screenshot
+screencapture -i $FILE_LOC
+sleep 1 # Because of race conditions
 
 # Calculations
 read WIDTH HEIGHT < <(identify -format "%w %h" $FILE_LOC)
