@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# screenshot.sh
+# niceshot
 #
 # Choose a screenshot location,
 # Adds a fancy background, of your choice.
@@ -11,7 +11,6 @@
 # Requirements: imagemagick
 # Only works on MacOS
 
-# Variables - change as needed
 NAME="$(date -u +%Y-%m-%dT%H:%M:%SZ)_screenshot.png" # screenshot name
 SCREENSHOT_DIR="$HOME/screenshots"                   # folder to store all of the screenshots
 MODIFY_DIR="$SCREENSHOT_DIR/modded"                  # folder to store all modified screenshots

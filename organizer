@@ -1,0 +1,104 @@
+#!/usr/bin/env ruby
+
+# organize <folder_name> -> defaults to dry run
+# organize --live <folder_name> -> actually moves the files
+#
+# Organize all of files from a specifc folder
+# into neat folders in your documents.
+# It DOES NOT go recursively to save folder
+# structure. It converts HEIC to JPG files.
+#
+# Setup a cron to run it every X minutes
+#
+# Update file locations as needed
+#
+# Requirements: ruby, imagemagick, mini_magic
+
+require "fileutils"
+require "optparse"
+require "mini_magick"
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: organize.rb [options]"
+
+  opts.on("--live", "Move the files to their new location") do
+    options[:live] = true
+  end
+end.parse!
+
+# Directory we want to organize
+TO_ORG_DIR = ARGV[0]
+
+MAX_FILE_NAME_LENGTH = 60
+
+# Location of all organized files
+ORG_DIR = "#{ENV['HOME']}/Library/Mobile\ Documents/com~apple~CloudDocs/"
+
+FILE_STRUCT = {
+  "Photoshop" => [ "psd" ],
+  "Documents" => %w[doc docx pdf eml],
+  "Images" => %w[webp png jpg heic jpeg],
+  "Data" => %w[csv tsv txt json],
+  "Archives" => [ "tar.gz", "zip", "gz" ],
+  "Audio" => %w[mp3 wav aac flac],
+  "Videos" => %w[mp4 avi mov mwv mkv],
+  "Installers" => %w[dmg exe]
+}
+
+# Easy lookup table ext => folder_name
+FILE_LOCS = FILE_STRUCT.each_with_object({}) do |(folder, exts), h|
+  exts.each do |ext|
+    h[".#{ext}"] = File.join(ORG_DIR, folder)
+  end
+end
+
+UNKNOWN_PATH = File.join(ORG_DIR, "Unknown")
+
+class FileConverter
+  class << self
+    def convert_heic_to_jpg(heic_file_path, jpg_file_path)
+      image = MiniMagick::Image.open(heic_file_path)
+      image.format "jpg"
+      image.write jpg_file_path
+    rescue StandardError => e
+      puts "An error occurred: #{e.message}"
+    end
+  end
+end
+
+Dir.foreach(TO_ORG_DIR) do |file_name|
+  next if file_name.start_with? "."
+
+  file_path = File.join(TO_ORG_DIR, file_name)
+  next unless File.file?(file_path)
+
+  created_at = File.birthtime(file_path).strftime("%Y-%m-%d")
+  ext = File.extname(file_name).downcase
+  shortened_name = File.basename(file_name, ".*").downcase
+                       .gsub(/[\p{S}\p{P}\p{Z}]+/, "_")
+  shortened_name = shortened_name[..MAX_FILE_NAME_LENGTH]
+
+  if ext == ".heic"
+    if options[:live]
+      FileConverter.convert_heic_to_jpg(
+        file_path,
+        file_path.downcase.gsub(".heic", ".jpg")
+      )
+    end
+    ext = ".jpg"
+  end
+
+  new_name = "#{created_at}_#{shortened_name}#{ext}"
+  puts "Extension: #{File.extname(file_name)}"
+
+  new_path = FILE_LOCS.fetch(File.extname(file_name), UNKNOWN_PATH)
+  new_loc = File.join(new_path, new_name)
+  puts "Old name, old loc => #{file_name} #{file_path}"
+  puts "New name, new loc => #{new_name} #{new_loc}"
+
+  if options[:live]
+    FileUtils.mkdir_p(new_path)
+    FileUtils.mv(file_path, new_loc)
+  end
+end
